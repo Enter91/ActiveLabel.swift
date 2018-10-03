@@ -39,9 +39,15 @@ class ViewController: UIViewController {
             label.URLColor = UIColor(red: 85.0/255, green: 238.0/255, blue: 151.0/255, alpha: 1)
             label.URLSelectedColor = UIColor(red: 82.0/255, green: 190.0/255, blue: 41.0/255, alpha: 1)
 
-            label.handleMentionTap { self.alert("Mention", message: $0) }
-            label.handleHashtagTap { self.alert("Hashtag", message: $0) }
-            label.handleURLTap { self.alert("URL", message: $0.absoluteString) }
+            label.handleMentionTap({ (mention, range) in
+                self.alert("Mention", message: "\(mention)\n\(NSStringFromRange(range))")
+            })
+            label.handleHashtagTap({ (hashtag, range) in
+                self.alert("Hashtag", message: "\(hashtag)\n\(NSStringFromRange(range))")
+            })
+            label.handleURLTap({ (url, range) in
+                self.alert("URL", message: "\(url.absoluteString)\n\(NSStringFromRange(range))")
+            })
 
             //Custom types
 
@@ -54,16 +60,22 @@ class ViewController: UIViewController {
                 var atts = attributes
                 switch type {
                 case customType3:
-                    atts[NSAttributedStringKey.font] = isSelected ? UIFont.boldSystemFont(ofSize: 16) : UIFont.boldSystemFont(ofSize: 14)
+                    atts[.font] = isSelected ? UIFont.boldSystemFont(ofSize: 16) : UIFont.boldSystemFont(ofSize: 14)
                 default: ()
                 }
                 
                 return atts
             }
 
-            label.handleCustomTap(for: customType) { self.alert("Custom type", message: $0) }
-            label.handleCustomTap(for: customType2) { self.alert("Custom type", message: $0) }
-            label.handleCustomTap(for: customType3) { self.alert("Custom type", message: $0) }
+            label.handleCustomTap(for: customType, handler: { (message, range) in
+                self.alert("Custom type", message: "\(message)\n\(NSStringFromRange(range))")
+            })
+            label.handleCustomTap(for: customType2, handler: { (message, range) in
+                self.alert("Custom type", message: "\(message)\n\(NSStringFromRange(range))")
+            })
+            label.handleCustomTap(for: customType3, handler: { (message, range) in
+                self.alert("Custom type", message: "\(message)\n\(NSStringFromRange(range))")
+            })
         }
 
         label.frame = CGRect(x: 20, y: 40, width: view.frame.width - 40, height: 300)
@@ -79,7 +91,7 @@ class ViewController: UIViewController {
     }
     
     func alert(_ title: String, message: String) {
-        let vc = UIAlertController(title: title, message: message, preferredStyle: UIAlertControllerStyle.alert)
+        let vc = UIAlertController(title: title, message: message, preferredStyle: .alert)
         vc.addAction(UIAlertAction(title: "Ok", style: .cancel, handler: nil))
         present(vc, animated: true, completion: nil)
     }
