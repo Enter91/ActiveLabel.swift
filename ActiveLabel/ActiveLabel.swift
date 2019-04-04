@@ -112,11 +112,11 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
     
     // MARK: - override UILabel properties
     override open var text: String? {
-        didSet { updateTextStorage() }
+        didSet { updateTextStorage(keepStringAttributes: false) }
     }
     
     override open var attributedText: NSAttributedString? {
-        didSet { updateTextStorage() }
+        didSet { updateTextStorage(keepStringAttributes: true) }
     }
     
     override open var font: UIFont! {
@@ -261,7 +261,7 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
         isUserInteractionEnabled = true
     }
     
-    fileprivate func updateTextStorage(parseText: Bool = true) {
+    fileprivate func updateTextStorage(parseText: Bool = true, keepStringAttributes: Bool = true) {
         if _customizing { return }
         // clean up previous active elements
         guard let attributedText = attributedText, attributedText.length > 0 else {
@@ -271,21 +271,23 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
             return
         }
         
-        var customAttributeRanges: [([NSAttributedString.Key: Any], NSRange)] = []
-        attributedText.enumerateAttributes(in: NSMakeRange(0, attributedText.length), options: .longestEffectiveRangeNotRequired) { (attributes, range, stop) in
-            customAttributeRanges.append((attributes, range))
-        }
-        
         let mutAttrString = addLineBreak(attributedText)
         
         if parseText {
+            var customAttributeRanges: [([NSAttributedString.Key: Any], NSRange)] = []
+            if keepStringAttributes {
+                attributedText.enumerateAttributes(in: NSMakeRange(0, attributedText.length), options: .longestEffectiveRangeNotRequired) { (attributes, range, stop) in
+                    customAttributeRanges.append((attributes, range))
+                }
+            }
+            
             clearActiveElements()
             let newString = parseTextAndExtractActiveElements(mutAttrString)
             mutAttrString.mutableString.setString(newString)
-        }
-        
-        customAttributeRanges.forEach { (attribute) in
-            mutAttrString.addAttributes(attribute.0, range: attribute.1)
+            
+            customAttributeRanges.forEach { (attribute) in
+                mutAttrString.addAttributes(attribute.0, range: attribute.1)
+            }
         }
         
         addLinkAttribute(mutAttrString)
