@@ -13,7 +13,7 @@ enum ActiveElement {
     case hashtag(String)
     case url(original: String, trimmed: String)
     case custom(String)
-
+    
     static func create(with activeType: ActiveType, text: String) -> ActiveElement {
         switch activeType {
         case .mention: return mention(text)
@@ -43,13 +43,13 @@ public enum ActiveType {
 }
 
 extension ActiveType: Hashable, Equatable {
-    public var hashValue: Int {
+    public func hash(into hasher: inout Hasher) {
         switch self {
-        case .mention: return -1
-        case .hashtag: return -2
-        case .url: return -3
-        case .custom(let regex): return regex.hashValue
-        case .customRange(let range): return range.hashValue
+        case .mention: hasher.combine(-1)
+        case .hashtag: hasher.combine(-2)
+        case .url: hasher.combine(-3)
+        case .custom(let regex): hasher.combine(regex)
+        case .customRange(let range): hasher.combine(range)
         }
     }
 }
